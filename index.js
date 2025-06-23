@@ -1,8 +1,30 @@
-import 'dotenv/config'
+import 'dotenv/config';
+import logger from "./logger.js";
+import morgan from "morgan";
 import express from 'express';
-const app = express();
 
+const app = express();
 const port = process.env.PORT || 3001;
+
+
+const morganFormat = ":method :url :status :response-time ms";
+
+app.use(
+  morgan(morganFormat, {
+    stream: {
+      write: (message) => {
+        const logObject = {
+          method: message.split(" ")[0],
+          url: message.split(" ")[1],
+          status: message.split(" ")[2],
+          responseTime: message.split(" ")[3],
+        };
+        logger.info(JSON.stringify(logObject));
+      },
+    },
+  })
+);
+
 
 // app.get('/' , (req,res) => {
 //     res.send('Hello from Shipra')
@@ -18,6 +40,7 @@ let teaData = [];
 let nextId = 1;
 
 app.post('/sendData' , (req,res)=>{
+    logger.info('post request was made');
     const {name, price} = req.body;
     const newTea = {id: nextId++, name , price};
     teaData.push(newTea);
